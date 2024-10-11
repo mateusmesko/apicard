@@ -86,4 +86,22 @@ public class PaymentController {
             }});
         }
     }
+
+    @PostMapping("/chargeback")
+    public ResponseEntity<Map<String, String>> processChargeback(@RequestBody Map<String, String> requestData) {
+        String transactionId = requestData.get("transactionId");
+        logger.info("Recebendo solicitação de chargeback para a transação: {}", transactionId);
+
+        // Usar o MockPaymentGateway para processar o estorno
+        Map<String, String> response = mockPaymentGateway.processChargeback(transactionId);
+
+        // Responder com base no status retornado pelo MockPaymentGateway
+        if ("success".equals(response.get("status"))) {
+            logger.debug("Chargeback processado com sucesso para a transação {}", transactionId);
+            return ResponseEntity.ok(response);
+        } else {
+            logger.warn("Falha ao processar o chargeback para a transação {}", transactionId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
 }
